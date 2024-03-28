@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package com.feri.bookusers;
+
+// The request message containing the user's details.
+message UserRequest {
+  string id = 1; // ID za posodobitev in brisanje
+  string name = 2;
+  string surname = 3;
+  int32 age = 4;
+  string email = 5;
+  string username = 6;
+}
+
+// The response message containing the user's data.
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string surname = 3;
+  int32 age = 4;
+  string email = 5;
+  string username = 6;
+  string registeredAt = 7;
+}
+
+// The service definition.
+service UserService {
+  // Sends a greeting
+  rpc CreateUser (UserRequest) returns (UserResponse);
+  rpc GetUser (UserRequest) returns (UserResponse); // Uporabite lahko ID ali drugo polje za iskanje
+  rpc UpdateUser (UserRequest) returns (UserResponse);
+  rpc DeleteUser (UserRequest) returns (UserResponse); // Uporabite lahko samo ID
+  rpc ListUsers (UserRequest) returns (stream UserResponse); // Dodano za primer pridobivanja seznama uporabnikov
+}
