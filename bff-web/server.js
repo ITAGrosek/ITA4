@@ -2,18 +2,117 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const PORT = 3000; 
+
 const grpc = require('@grpc/grpc-js');
+const { UserServiceClient } = require('./generated/proto/user_grpc_pb');
+const { UserRequest } = require('./generated/proto/user_pb');
 
 
 
-const { UserServiceClient } = require('./generated/user_grpc_pb');
-const { UserRequest } = require('./generated/user_pb');
+const client = new UserServiceClient(
+  'localhost:9002',
+  grpc.credentials.createInsecure()
+);
 
-// Nastavitve za gRPC mikrostoritev za uporabnike
-const userClient = new UserServiceClient(
-    'localhost:9002',
-    grpc.credentials.createInsecure()
-  );
+// Middleware za branje JSON telesa
+app.use(express.json());
+
+app.post('/api/users', (req, res) => {
+  // Ustvari Protobuf sporočilo
+  const request = new UserRequest();
+  request.setName(req.body.name);
+  request.setSurname(req.body.surname);
+  request.setAge(req.body.age);
+  request.setEmail(req.body.email);
+  request.setUsername(req.body.username);
+  
+  // Izvedi gRPC klic
+  client.createUser(request, (error, response) => {
+    if (error) {
+      console.error('gRPC error:', error);
+      res.status(500).send("An error occurred: " + error.message);
+    } else {
+      // `response` je Protobuf objekt, pretvoriti ga morate v JSON
+      res.json(response.toObject());
+    }
+  });
+});
+
+app.get('/api/users/:id', (req, res) => {
+  const request = new UserRequest();
+  request.setId(req.params.id);
+
+  client.getUser(request, (error, response) => {
+    if (error) {
+      console.error('gRPC error:', error);
+      res.status(500).send("An error occurred: " + error.message);
+    } else {
+      res.json(response.toObject());
+    }
+  });
+});
+
+
+// Posodobi podatke uporabnika
+app.put('/api/users/:id', (req, res) => {
+  const request = new UserRequest();
+  request.setId(req.params.id);
+  // Predpostavljamo, da telo zahtevka vsebuje vse atribute, ki jih želimo posodobiti
+  Object.keys(req.body).forEach(key => {
+    const setter = `set${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    if (typeof request[setter] === 'function') {
+      request[setter](req.body[key]);
+    }
+  });
+
+  client.updateUser(request, (error, response) => {
+    if (error) {
+      console.error('gRPC error:', error);
+      res.status(500).send("An error occurred: " + error.message);
+    } else {
+      res.json(response.toObject());
+    }
+  });
+});
+
+// Izbriše uporabnika
+app.delete('/api/users/:id', (req, res) => {
+  const request = new UserRequest();
+  request.setId(req.params.id);
+
+  client.deleteUser(request, (error, response) => {
+    if (error) {
+      console.error('gRPC error:', error);
+      res.status(500).send("An error occurred: " + error.message);
+    } else {
+      res.sendStatus(204); // No Content
+    }
+  });
+});
+
+app.get('/api/users', (req, res) => {
+  const request = new UserRequest();
+
+  const call = client.listUsers(request);
+  const users = [];
+
+  call.on('data', (user) => {
+    users.push(user.toObject());
+  });
+
+  call.on('end', () => {
+    res.json(users);
+  });
+
+  call.on('error', (error) => {
+    console.error('gRPC error:', error);
+    res.status(500).send("An error occurred: " + error.message);
+  });
+
+  call.on('status', (status) => {
+    // lahko tudi obravnavate gRPC status
+  });
+});
 
 app.use(express.json());
 

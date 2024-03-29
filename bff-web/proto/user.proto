@@ -4,7 +4,7 @@ package com.feri.bookusers;
 
 // The request message containing the user's details.
 message UserRequest {
-  string id = 1; // ID za posodobitev in brisanje
+  string id = 1;
   string name = 2;
   string surname = 3;
   int32 age = 4;
@@ -27,8 +27,8 @@ message UserResponse {
 service UserService {
   // Sends a greeting
   rpc CreateUser (UserRequest) returns (UserResponse);
-  rpc GetUser (UserRequest) returns (UserResponse); // Uporabite lahko ID ali drugo polje za iskanje
+  rpc GetUser (UserRequest) returns (UserResponse);
   rpc UpdateUser (UserRequest) returns (UserResponse);
-  rpc DeleteUser (UserRequest) returns (UserResponse); // Uporabite lahko samo ID
-  rpc ListUsers (UserRequest) returns (stream UserResponse); // Dodano za primer pridobivanja seznama uporabnikov
+  rpc DeleteUser (UserRequest) returns (UserResponse);
+  rpc ListUsers (UserRequest) returns (stream UserResponse);
 }
