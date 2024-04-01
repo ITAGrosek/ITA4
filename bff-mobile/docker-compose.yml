@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  bff-mobile:
+    build: .
+    container_name: bff-mobile
+    ports:
+      - "4000:4000"
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    external: true
