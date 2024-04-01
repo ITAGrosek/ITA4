@@ -10,7 +10,7 @@ const { UserRequest } = require('./generated/proto/user_pb');
 
 
 const client = new UserServiceClient(
-  'localhost:9002',
+  'users-service:9002',
   grpc.credentials.createInsecure()
 );
 
@@ -118,12 +118,15 @@ app.use(express.json());
 
 // Nastavi osnovni URL mikrostoritve za knjige
 // Ta URL se uporablja kot cilj za vse zahteve, ki so namenjene mikrostoritvi za knjige
-const BOOK_SERVICE_BASE_URL = 'http://localhost:8080/api';
+//const BOOK_SERVICE_BASE_URL = 'http://localhost:8080/api';
 
 
 // Nastavi osnovni URL mikrostoritve za rezervacije
-const RESERVATION_SERVICE_BASE_URL = 'http://localhost:8081';
+//const RESERVATION_SERVICE_BASE_URL = 'http://localhost:8081';
 
+
+const BOOK_SERVICE_BASE_URL = 'http://book-management-service:8080/api';
+const RESERVATION_SERVICE_BASE_URL = 'http://reservation-service:8081';
 
 // Dinamično usmerjanje vseh zahtev pod '/api/*'
 app.use('/api/*', async (req, res) => {
