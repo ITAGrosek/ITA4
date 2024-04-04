@@ -43,4 +43,4 @@ jobs:
           docker-compose build
           docker-compose push
 
-      # Dodatne korake lahko dodate po potrebi.
+      

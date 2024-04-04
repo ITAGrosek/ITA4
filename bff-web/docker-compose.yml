@@ -3,6 +3,7 @@ version: '3.8'
 services:
   bff-web:
     build: .  # To bo uporabilo Dockerfile v trenutnem direktoriju
+    image: martingrosek/bff-web:latest  # Dodajte to vrstico
     ports:
       - "3000:3000" # Predpostavlja, da BFF-Web teče na portu 3000
     networks:
