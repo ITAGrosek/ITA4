@@ -3,6 +3,7 @@ version: '3.8'
 services:
   bff-mobile:
     build: .
+    image: martingrosek/bff-mobile:latest  # Dodajte to vrstico
     container_name: bff-mobile
     ports:
       - "4000:4000"
