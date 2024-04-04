@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [bff-mobile, bff-web]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker image for bff-mobile
+        if: ${{ matrix.service == 'bff-mobile' }}
+        run: |
+          cd bff-mobile
+          docker-compose build
+          docker-compose push
+
+      - name: Build and Push Docker image for bff-web
+        if: ${{ matrix.service == 'bff-web' }}
+        run: |
+          cd bff-web
+          docker-compose build
+          docker-compose push
+
+      # Dodatne korake lahko dodate po potrebi.
