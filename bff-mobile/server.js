@@ -2,8 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const PORT = 4000; // Uporabite drugačen port za BFF-Mobile, npr. 4000
-
-
 const grpc = require('@grpc/grpc-js');
 const { UserServiceClient } = require('./generated/proto/user_grpc_pb');
 const { UserRequest } = require('./generated/proto/user_pb');
@@ -14,6 +12,8 @@ const client = new UserServiceClient(
   'users-service:9002',
   grpc.credentials.createInsecure()
 );
+
+
 
 // Middleware za branje JSON telesa
 app.use(express.json());
@@ -33,7 +33,7 @@ app.post('/api/users', (req, res) => {
       console.error('gRPC error:', error);
       res.status(500).send("An error occurred: " + error.message);
     } else {
-      // `response` je Protobuf objekt, pretvoriti ga morate v JSON
+      // `response` je Protobuf objekt, pretvoriš ga v json  v JSON
       res.json(response.toObject());
     }
   });
@@ -52,8 +52,6 @@ app.get('/api/users/:id', (req, res) => {
     }
   });
 });
-
-
 
 
 
@@ -93,7 +91,6 @@ const BOOK_SERVICE_BASE_URL = 'http://book-management-service:8080/api';
 const RESERVATION_SERVICE_BASE_URL = 'http://reservation-service:8081';
 
 
-// Dinamično usmerjanje zahtev (GET in POST) pod '/api/*'
 app.use('/api/*', async (req, res) => {
   let targetUrl;
 
@@ -102,6 +99,12 @@ app.use('/api/*', async (req, res) => {
     targetUrl = `${BOOK_SERVICE_BASE_URL}${req.originalUrl.replace('/api', '')}`;
   } else if (req.originalUrl.includes('/api/reservations')) {
     targetUrl = `${RESERVATION_SERVICE_BASE_URL}${req.originalUrl.replace('/api', '')}`;
+  }
+
+  // Preveri, če je metoda zahtevka GET ali POST
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    // Če metoda zahtevka ni GET ali POST, vrni status 405 Method Not Allowed
+    return res.status(405).send('Method Not Allowed');
   }
 
   try {
@@ -125,8 +128,6 @@ app.use('/api/*', async (req, res) => {
     }
   }
 });
-
-
 
 
 app.listen(PORT, () => {
