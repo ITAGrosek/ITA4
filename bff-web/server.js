@@ -6,7 +6,10 @@ const PORT = 3000;
 const grpc = require('@grpc/grpc-js');
 const { UserServiceClient } = require('./generated/proto/user_grpc_pb');
 const { UserRequest } = require('./generated/proto/user_pb');
+const cors = require('cors');
 
+
+app.use(cors());
 
 
 const client = new UserServiceClient(
