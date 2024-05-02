@@ -121,50 +121,168 @@ app.use(express.json());
 
 // Nastavi osnovni URL mikrostoritve za knjige
 // Ta URL se uporablja kot cilj za vse zahteve, ki so namenjene mikrostoritvi za knjige
-//const BOOK_SERVICE_BASE_URL = 'http://localhost:8080/api';
+const BOOK_SERVICE_BASE_URL = 'http://localhost:8080/api';
 
 
 // Nastavi osnovni URL mikrostoritve za rezervacije
-//const RESERVATION_SERVICE_BASE_URL = 'http://localhost:8081';
+const RESERVATION_SERVICE_BASE_URL = 'http://localhost:8081';
+const STATS_API_URI = 'http://localhost:9000/api/stats'; // URL tvoje statistične storitve
 
 
-const BOOK_SERVICE_BASE_URL = 'http://book-management-service:8080/api';
-const RESERVATION_SERVICE_BASE_URL = 'http://reservation-service:8081';
+//const BOOK_SERVICE_BASE_URL = 'http://book-management-service:8080/api';
+//const RESERVATION_SERVICE_BASE_URL = 'http://reservation-service:8081';
 
-// Dinamično usmerjanje vseh zahtev pod '/api/*'
-app.use('/api/*', async (req, res) => {
-    let targetUrl;
-    if (req.originalUrl.includes('/api/books')) {
-      // Če je zahteva namenjena upravljanju knjig, usmeri na prvo mikrostoritev
-      targetUrl = `${BOOK_SERVICE_BASE_URL}${req.originalUrl.replace('/api', '')}`;
-    } else if (req.originalUrl.includes('/api/reservations')) {
-      // Če je zahteva namenjena upravljanju rezervacij, usmeri na drugo mikrostoritev
-      targetUrl = `${RESERVATION_SERVICE_BASE_URL}${req.originalUrl.replace('/api', '')}`;
-    }
-  
-    try {
-      // Ustvari konfiguracijo za Axios zahtevek
-      const axiosConfig = {
-        method: req.method,
-        url: targetUrl,
-        ...(Object.keys(req.body || {}).length > 0 && {data: req.body}),
-        params: req.query,
-      };
-  
-      // Pošlji zahtevek na ustrezno končno točko glede na pot
-      const response = await axios(axiosConfig);
-      res.status(response.status).json(response.data);
-    } catch (error) {
-      // Obvladuj napake
-      if (error.response) {
-        res.status(error.response.status).send(error.response.data);
-      } else {
-        console.error(error.message);
-        res.sendStatus(500);
-      }
-    }
-  });
-  
+/*
+// Pridobi vse knjige
+app.get('/api/books', async (req, res) => {
+  try {
+    const response = await axios.get(`${BOOK_SERVICE_BASE_URL}/books`);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error('Error fetching all books:', error.message);
+    res.sendStatus(500);
+  }
+});
+*/
+
+app.get('/api/books', async (req, res) => {
+  try {
+      const response = await axios.get(`${BOOK_SERVICE_BASE_URL}/books`);
+
+      // Posodobi statistiko po uspešnem klicu
+      axios.post(`http://localhost:9000/api/stats/updateStats`, {
+          endpoint: 'GET: /api/books'
+      })
+      .then(statResponse => {
+          console.log('Statistika uspešno posodobljena');
+          res.status(response.status).json(response.data);
+      })
+      .catch(statError => {
+          console.error('Napaka pri posodabljanju statistike:', statError);
+          // Če statistika ne uspe, še vedno vrne podatke
+          res.status(response.status).json(response.data);
+      });
+  } catch (error) {
+      console.error('Error fetching all books:', error.message);
+      
+      // Posodobi statistiko tudi v primeru napake
+      axios.post(`${STATS_API_URI}/updateStats`, {
+          klicanaStoritev: 'GET: /api/books'
+      })
+      .then(statResponse => {
+          console.log('Statistika uspešno posodobljena ob napaki');
+          res.sendStatus(500);
+      })
+      .catch(statError => {
+          console.error('Napaka pri posodabljanju statistike (napaka):', statError);
+          res.sendStatus(500);
+      });
+  }
+});
+
+
+
+
+// Pridobi knjigo po ID
+app.get('/api/books/:id', async (req, res) => {
+  try {
+    const response = await axios.get(`${BOOK_SERVICE_BASE_URL}/books/${req.params.id}`);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`Error fetching book with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Ustvari novo knjigo
+app.post('/api/books', async (req, res) => {
+  try {
+    const response = await axios.post(`${BOOK_SERVICE_BASE_URL}/books`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error('Error creating a book:', error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Posodobi knjigo
+app.put('/api/books/:id', async (req, res) => {
+  try {
+    const response = await axios.put(`${BOOK_SERVICE_BASE_URL}/books/${req.params.id}`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`Error updating book with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Izbriši knjigo
+app.delete('/api/books/:id', async (req, res) => {
+  try {
+    const response = await axios.delete(`${BOOK_SERVICE_BASE_URL}/books/${req.params.id}`);
+    res.status(response.status).send('Book deleted successfully');
+  } catch (error) {
+    console.error(`Error deleting book with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
+
+// Pridobi vse rezervacije
+app.get('/api/reservations', async (req, res) => {
+  try {
+    const response = await axios.get(`${RESERVATION_SERVICE_BASE_URL}/reservations`);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error('Error fetching all reservations:', error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Pridobi rezervacijo po ID
+app.get('/api/reservations/:id', async (req, res) => {
+  try {
+    const response = await axios.get(`${RESERVATION_SERVICE_BASE_URL}/reservations/${req.params.id}`);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`Error fetching reservation with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Ustvari novo rezervacijo
+app.post('/api/reservations', async (req, res) => {
+  try {
+    const response = await axios.post(`${RESERVATION_SERVICE_BASE_URL}/reservations`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error('Error creating a reservation:', error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Posodobi rezervacijo
+app.put('/api/reservations/:id', async (req, res) => {
+  try {
+    const response = await axios.put(`${RESERVATION_SERVICE_BASE_URL}/reservations/${req.params.id}`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error(`Error updating reservation with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
+// Izbriši rezervacijo
+app.delete('/api/reservations/:id', async (req, res) => {
+  try {
+    const response = await axios.delete(`${RESERVATION_SERVICE_BASE_URL}/reservations/${req.params.id}`);
+    res.status(response.status).send('Reservation deleted successfully');
+  } catch (error) {
+    console.error(`Error deleting reservation with ID ${req.params.id}:`, error.message);
+    res.sendStatus(500);
+  }
+});
+
 
 
 
@@ -172,5 +290,3 @@ app.use('/api/*', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`BFF Web listening at http://localhost:${PORT}`);
 });
-
-
