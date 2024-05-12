@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Izpostavi port, ki ga uporablja tvoj BFF-Mobile
-EXPOSE 4000
+EXPOSE 3001
 
 # Zaženi server.js z Node.js
 CMD ["node", "server.js"]

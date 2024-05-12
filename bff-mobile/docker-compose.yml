@@ -6,7 +6,7 @@ services:
     image: martingrosek/bff-mobile:latest  # Dodajte to vrstico
     container_name: bff-mobile
     ports:
-      - "4000:4000"
+      - "3001:3001"
     networks:
       - backend-network
 

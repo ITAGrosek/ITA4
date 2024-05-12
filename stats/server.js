@@ -7,7 +7,11 @@ const PORT = 9000;
 app.use(express.json());
 
 // Hardcoded MongoDB URI
-const MONGODB_URI = 'mongodb://localhost:27017/statsdb';
+//const MONGODB_URI = 'mongodb://localhost:27017/statsdb';
+
+//docker
+
+const MONGODB_URI = 'mongodb://mongo:27017/statsdb';
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected successfully'))

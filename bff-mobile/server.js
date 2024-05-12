@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const app = express();
-const PORT = 4000; // Uporabite drugačen port za BFF-Mobile, npr. 4000
+const PORT = 3001; // Uporabite drugačen port za BFF-Mobile, npr. 4000
 const grpc = require('@grpc/grpc-js');
 const { UserServiceClient } = require('./generated/proto/user_grpc_pb');
 const { UserRequest } = require('./generated/proto/user_pb');
